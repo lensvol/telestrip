@@ -1,9 +1,10 @@
 # -*- config: utf-8 -*-
 import asyncio
+import itertools
 import os
 from datetime import datetime
 from time import mktime
-from typing import List
+from typing import List, Iterator
 
 import attr
 import feedparser
@@ -25,7 +26,7 @@ async def fetch(url):
 class Update(object):
     title: str
     description: str
-    updated: pendulum
+    timestamp: pendulum
     images: List[bytes]
 
 
@@ -49,13 +50,6 @@ class PennyArcade(ComicStrip):
         print(f"Requesting feed from {self.INDEX_URL}...")
         response, page = await fetch(self.INDEX_URL)
         rss = feedparser.parse(page)
-
-        # Fri, 31 Aug 2018 17:00:00 +0000
-        print(rss.feed.updated)
-        updated_on = pendulum.from_timestamp(mktime(rss.feed.updated_parsed))
-        if updated_on <= moment:
-            print("No new items.")
-            return []
 
         for entry in rss.entries:
             published_on = pendulum.from_timestamp(mktime(entry.published_parsed))
@@ -85,14 +79,25 @@ async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List
     bot = Bot(api_token)
     private = bot.private(sender_id)
 
-    for update in sorted(updates, key=lambda u: u.updated):
+    for update in sorted(updates, key=lambda u: u.timestamp):
         for strip in update.images:
             print(f'Sending {update.title}...')
-            human_dt = update.updated.to_datetime_string()
+            human_dt = update.timestamp.to_datetime_string()
             await private.send_photo(
                 photo=strip,
                 caption=f'{update.title} - {human_dt}'
             )
+
+
+async def collect_strips(comic_strips: List[ComicStrip], moment: pendulum.DateTime) -> Iterator[Update]:
+    tasks = [
+        asyncio.ensure_future(comic_strip.get_updates(moment))
+        for comic_strip in comic_strips
+    ]
+
+    updates = await asyncio.gather(*tasks)
+
+    return itertools.chain.from_iterable(updates)
 
 
 def main():
@@ -108,7 +113,9 @@ def main():
 
     now = pendulum.now()
     loop = asyncio.get_event_loop()
-    updates = loop.run_until_complete(PennyArcade().get_updates(now.subtract(days=1)))
+    updates = loop.run_until_complete(collect_strips([
+        PennyArcade(),
+    ], now.subtract(days=3)))
 
     loop.run_until_complete(send_updates_to_telegram(recipient_id, bot_token, updates))
 
