@@ -12,6 +12,7 @@ pendulum = "*"
 ipdb = "*"
 pytz = "*"
 "flake8" = "*"
+aiotg = "*"
 
 [dev-packages]
 black = "*"
