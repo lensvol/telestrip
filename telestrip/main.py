@@ -75,6 +75,102 @@ class PennyArcade(ComicStrip):
         return result
 
 
+class PvP(ComicStrip):
+
+    TITLE = "PvP"
+    INDEX_URL = "http://pvponline.com/feed"
+
+    async def get_updates(self, moment: datetime) -> List[Update]:
+        result = []
+
+        print(f"Requesting feed from {self.INDEX_URL}...")
+        response, page = await fetch(self.INDEX_URL)
+        rss = feedparser.parse(page)
+
+        for entry in rss.entries:
+            published_on = pendulum.from_timestamp(mktime(entry.date_parsed))
+
+            if published_on < moment:
+                print(f"[{self.TITLE}] Ignoring entry {entry.title}: too old")
+                continue
+
+            if not entry.title.startswith("Comic:"):
+                print(f"[{self.TITLE}] Ignoring entry {entry.title}: not a comic")
+                continue
+
+            print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
+            response, comic_page = await fetch(entry.link)
+            soup = BeautifulSoup(comic_page, "html.parser")
+            comic_img = soup.find("section", {"class": "comic-art"}).findChild("img")
+
+            print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
+            response, image = await fetch(comic_img.attrs["src"])
+
+            result.append(Update(entry.title, entry.summary, published_on, [image]))
+
+        return result
+
+
+class SaturdayMorningBreakfastCereal(ComicStrip):
+
+    TITLE = "Saturday Morning Breakfast Cereal"
+    INDEX_URL = "https://www.smbc-comics.com/comic/rss"
+
+    async def get_updates(self, moment: datetime) -> List[Update]:
+        result = []
+
+        print(f"[{self.TITLE}] Requesting feed from {self.INDEX_URL}...")
+        response, page = await fetch(self.INDEX_URL)
+        rss = feedparser.parse(page)
+
+        for entry in rss.entries:
+            published_on = pendulum.from_timestamp(mktime(entry.published_parsed))
+
+            if published_on < moment:
+                continue
+
+            print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
+            soup = BeautifulSoup(entry.description, "html.parser")
+            comic_img = soup.find("img")
+
+            print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
+            response, image = await fetch(comic_img.attrs["src"])
+
+            result.append(Update(entry.title, entry.summary, published_on, [image]))
+
+        return result
+
+
+class XKCD(ComicStrip):
+
+    TITLE = "XKCD"
+    INDEX_URL = "https://xkcd.com/rss.xml"
+
+    async def get_updates(self, moment: datetime) -> List[Update]:
+        result = []
+
+        print(f"[{self.TITLE}] Requesting feed from {self.INDEX_URL}...")
+        response, page = await fetch(self.INDEX_URL)
+        rss = feedparser.parse(page)
+
+        for entry in rss.entries:
+            published_on = pendulum.from_timestamp(mktime(entry.published_parsed))
+
+            if published_on < moment:
+                continue
+
+            print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
+            soup = BeautifulSoup(entry.description, "html.parser")
+            comic_img = soup.find("img")
+
+            print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
+            response, image = await fetch(comic_img.attrs["src"])
+
+            result.append(Update(entry.title, comic_img.attrs['alt'], published_on, [image]))
+
+        return result
+
+
 async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List[Update]) -> None:
     bot = Bot(api_token)
     private = bot.private(sender_id)
@@ -115,6 +211,9 @@ def main():
     loop = asyncio.get_event_loop()
     updates = loop.run_until_complete(collect_strips([
         PennyArcade(),
+        PvP(),
+        SaturdayMorningBreakfastCereal(),
+        XKCD(),
     ], now.subtract(days=3)))
 
     loop.run_until_complete(send_updates_to_telegram(recipient_id, bot_token, updates))
