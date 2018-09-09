@@ -2,6 +2,8 @@
 import asyncio
 import os
 
+import pendulum
+
 from telestrip.comic_strips import *
 from telestrip.helpers import collect_strips, send_updates_to_telegram
 
@@ -25,7 +27,8 @@ def main():
         PvP(),
         SaturdayMorningBreakfastCereal(),
         XKCD(),
-    ], now.subtract(days=3)))
+        CommitStrip(),
+    ], now.subtract(days=1)))
 
     loop.run_until_complete(send_updates_to_telegram(recipient_id, bot_token, updates))
 

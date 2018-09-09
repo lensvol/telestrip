@@ -1,12 +1,12 @@
 # -*- config: utf-8 -*-
 import asyncio
 import itertools
-import os
-from typing import Iterator
+from typing import Iterator, List
 
+import pendulum
 from aiotg import Bot
 
-from telestrip.comic_strips import *
+from telestrip.comic_strips import ComicStrip, Update
 
 RSS_DATE_FORMAT = "ddd, D MMM YYYY HH:mm:ss Z"
 

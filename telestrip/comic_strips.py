@@ -1,10 +1,9 @@
-from datetime import datetime
 from time import mktime
 from typing import List, Union
 
+import attr
 import feedparser
 import pendulum
-import attr
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from pendulum import DateTime
@@ -128,3 +127,29 @@ class XKCD(ComicStrip):
         print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
         response, image = await fetch(comic_img.attrs["src"])
         return Update(entry.title, comic_img.attrs['alt'], published_on, [image])
+
+
+class CommitStrip(ComicStrip):
+
+    TITLE = "Commit Strip"
+    INDEX_URL = 'https://www.commitstrip.com/en/feed/'
+
+    async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
+        print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
+        soup = BeautifulSoup(entry.description, "html.parser")
+        comic_img = soup.find("img")
+
+        print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
+        response, image = await fetch(comic_img.attrs["src"])
+        return Update(entry.title, '', published_on, [image])
+
+
+__all__ = [
+    'CommitStrip',
+    'PvP',
+    'PennyArcade',
+    'SaturdayMorningBreakfastCereal',
+    'XKCD',
+    'ComicStrip',
+    'Update',
+]
