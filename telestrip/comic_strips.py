@@ -24,7 +24,7 @@ class Update(object):
 
 
 class ComicStrip(object):
-
+    ID = None
     TITLE = None
     INDEX_URL = None
 
@@ -57,7 +57,7 @@ class ComicStrip(object):
 
 
 class PennyArcade(ComicStrip):
-
+    ID = 'penny-arcade'
     TITLE = "Penny Arcade"
     INDEX_URL = "http://penny-arcade.com/feed"
 
@@ -78,7 +78,7 @@ class PennyArcade(ComicStrip):
 
 
 class PvP(ComicStrip):
-
+    ID = 'pvp'
     TITLE = "PvP"
     INDEX_URL = "http://pvponline.com/feed"
 
@@ -99,7 +99,7 @@ class PvP(ComicStrip):
 
 
 class SaturdayMorningBreakfastCereal(ComicStrip):
-
+    ID = 'smbc'
     TITLE = "Saturday Morning Breakfast Cereal"
     INDEX_URL = "https://www.smbc-comics.com/comic/rss"
 
@@ -130,7 +130,7 @@ class XKCD(ComicStrip):
 
 
 class CommitStrip(ComicStrip):
-
+    ID = 'commit-strip'
     TITLE = "Commit Strip"
     INDEX_URL = 'https://www.commitstrip.com/en/feed/'
 

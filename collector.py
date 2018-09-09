@@ -1,5 +1,6 @@
 # -*- config: utf-8 -*-
 import asyncio
+import argparse
 import os
 
 import pendulum
@@ -9,7 +10,8 @@ from telestrip.helpers import collect_strips, send_updates_to_telegram
 
 RSS_DATE_FORMAT = "ddd, D MMM YYYY HH:mm:ss Z"
 
-def main():
+
+def main(specific_strips=None, day_delta=1):
     bot_token = os.environ.get('BOT_TOKEN')
     recipient_id = os.environ.get('RECIPIENT_ID')
     if not bot_token:
@@ -20,18 +22,43 @@ def main():
         print('No recipient specified in RECIPIENT_ID variable!')
         exit(-1)
 
-    now = pendulum.now()
-    loop = asyncio.get_event_loop()
-    updates = loop.run_until_complete(collect_strips([
+    requested_strips = [
         PennyArcade(),
         PvP(),
         SaturdayMorningBreakfastCereal(),
         XKCD(),
         CommitStrip(),
-    ], now.subtract(days=1)))
+    ]
+
+    if specific_strips:
+        requested_strips = filter(
+            lambda strip: strip.ID in specific_strips,
+            requested_strips
+        )
+
+    now = pendulum.now()
+    loop = asyncio.get_event_loop()
+    updates = loop.run_until_complete(
+        collect_strips(list(requested_strips), now.subtract(days=day_delta))
+    )
 
     loop.run_until_complete(send_updates_to_telegram(recipient_id, bot_token, updates))
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--delta',
+        type=int,
+        help='Specify boundary in number of days from now.',
+        default=1
+    )
+    parser.add_argument('--strips', help='Collect only strips with specified IDs')
+    args = parser.parse_args()
+
+    if args.strips:
+        strips = list(map(lambda s: s.strip(), args.strips.split(',')))
+    else:
+        strips = None
+
+    main(specific_strips=strips, day_delta=args.delta)
