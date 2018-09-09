@@ -136,11 +136,14 @@ class CommitStrip(ComicStrip):
 
     async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
         print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
-        soup = BeautifulSoup(entry.description, "html.parser")
-        comic_img = soup.find("img")
+        soup = BeautifulSoup(entry.content[0].value, "html.parser")
+        comic_imgs = soup.findAll("img")
 
-        print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
-        response, image = await fetch(comic_img.attrs["src"])
+        if not comic_imgs:
+            return None
+
+        print(f'[{self.TITLE}] Fetching image from {comic_imgs[0].attrs["src"]}')
+        response, image = await fetch(comic_imgs[0].attrs["src"])
         return Update(entry.title, '', published_on, [image])
 
 
