@@ -28,6 +28,7 @@ def main(specific_strips=None, day_delta=1):
         SaturdayMorningBreakfastCereal(),
         XKCD(),
         CommitStrip(),
+        SlackWyrm(),
     ]
 
     if specific_strips:

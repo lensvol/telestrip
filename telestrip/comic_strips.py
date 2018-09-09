@@ -144,6 +144,27 @@ class CommitStrip(ComicStrip):
         return Update(entry.title, '', published_on, [image])
 
 
+class SlackWyrm(ComicStrip):
+    ID = 'slack-wyrm'
+    TITLE = 'Slack Wyrm'
+    INDEX_URL = 'http://www.joshuawright.net/rss_joshuawright.xml'
+
+    async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
+        print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
+        response, comic_page = await fetch(entry.link)
+        soup = BeautifulSoup(comic_page, "html.parser")
+        comic_frames = soup.findAll("div", {"data-muse-type": "img_frame"})
+
+        images = []
+        for frame in comic_frames:
+            comic_img = frame.findChild('img')
+            print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
+            response, image = await fetch('http://www.joshuawright.net/' + comic_img.attrs["src"])
+            images.append(image)
+
+        return Update(entry.title, entry.summary, published_on, images)
+
+
 __all__ = [
     'CommitStrip',
     'PvP',
@@ -152,4 +173,5 @@ __all__ = [
     'XKCD',
     'ComicStrip',
     'Update',
+    'SlackWyrm',
 ]
