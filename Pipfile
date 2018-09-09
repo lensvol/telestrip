@@ -13,9 +13,9 @@ ipdb = "*"
 pytz = "*"
 "flake8" = "*"
 aiotg = "*"
+colorama = "*"
 
 [dev-packages]
-black = "*"
 
 [requires]
 python_version = "3.6"

@@ -6,12 +6,12 @@ import os
 import pendulum
 
 from telestrip.comic_strips import *
-from telestrip.helpers import collect_strips, send_updates_to_telegram
+from telestrip.helpers import collect_strips, send_updates_to_telegram, print_updates_to_console
 
 RSS_DATE_FORMAT = "ddd, D MMM YYYY HH:mm:ss Z"
 
 
-def main(specific_strips=None, day_delta=1):
+def main(specific_strips=None, day_delta=1, print_to_console=False):
     bot_token = os.environ.get('BOT_TOKEN')
     recipient_id = os.environ.get('RECIPIENT_ID')
     if not bot_token:
@@ -43,11 +43,21 @@ def main(specific_strips=None, day_delta=1):
         collect_strips(list(requested_strips), now.subtract(days=day_delta))
     )
 
-    loop.run_until_complete(send_updates_to_telegram(recipient_id, bot_token, updates))
+    if not print_to_console:
+        loop.run_until_complete(
+            send_updates_to_telegram(recipient_id, bot_token, updates)
+        )
+    else:
+        print_updates_to_console(updates)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--console',
+        action='store_true',
+        help='Display results in the console instead of sending them on.',
+    )
     parser.add_argument(
         '--delta',
         type=int,
@@ -62,4 +72,8 @@ if __name__ == "__main__":
     else:
         strips = None
 
-    main(specific_strips=strips, day_delta=args.delta)
+    main(
+        specific_strips=strips,
+        day_delta=args.delta,
+        print_to_console=args.console,
+    )
