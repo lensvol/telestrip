@@ -42,7 +42,8 @@ async def collect_strips(comic_strips: List[ComicStrip], moment: pendulum.DateTi
 def print_updates_to_console(updates: List[Update]) -> None:
     init_colorama()
     for update in updates:
-        print(f'{Style.BRIGHT}[{update.title}]\n{update.description}\n')
+        print(f'{Style.BRIGHT}[{update.title}]{Style.RESET_ALL}\n')
         for image in update.images:
             print(MAGIC_IMAGE_LINE.format(encoded_image=base64.b64encode(image).decode('ascii')))
             print()
+            print(f'{Fore.LIGHTGREEN_EX}{update.description}{Style.RESET_ALL}\n')
