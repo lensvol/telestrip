@@ -108,14 +108,20 @@ class SaturdayMorningBreakfastCereal(ComicStrip):
         soup = BeautifulSoup(entry.description, "html.parser")
         comic_img = soup.find("img")
 
+        description = ''
+
+        p_hovertext = soup.find('p')
+        if p_hovertext:
+            hovertext = p_hovertext.findNext('br').next
+
         print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
         response, image = await fetch(comic_img.attrs["src"])
 
-        return Update(entry.title, entry.summary, published_on, [image])
+        return Update(entry.title, hovertext, published_on, [image])
 
 
 class XKCD(ComicStrip):
-
+    ID = 'xkcd'
     TITLE = "XKCD"
     INDEX_URL = "https://xkcd.com/rss.xml"
 
