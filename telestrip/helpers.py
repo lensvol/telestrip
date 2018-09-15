@@ -36,7 +36,6 @@ async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List
             )
 
 
-
 async def collect_strips(comic_strips: List[ComicStrip], moment: pendulum.DateTime) -> Iterator[Update]:
     tasks = [
         asyncio.ensure_future(comic_strip.get_updates(moment))
@@ -55,4 +54,5 @@ def print_updates_to_console(updates: List[Update]) -> None:
         for image in update.images:
             print(MAGIC_IMAGE_LINE.format(encoded_image=base64.b64encode(image).decode('ascii')))
             print()
-            print(f'{Fore.LIGHTGREEN_EX}{update.description}{Style.RESET_ALL}\n')
+            if update.description:
+                print(f'{Fore.LIGHTGREEN_EX}{update.description}{Style.RESET_ALL}\n')
