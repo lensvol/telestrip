@@ -138,12 +138,12 @@ class SaturdayMorningBreakfastCereal(ComicStrip):
 
         p_hovertext = soup.find('p')
         if p_hovertext:
-            hovertext = p_hovertext.findNext('br').next
+            description = p_hovertext.findNext('br').next
 
         print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
         response, image = await fetch(comic_img.attrs["src"])
 
-        return Update(entry.title, hovertext, published_on, [image])
+        return Update(entry.title, description, published_on, [image])
 
 
 class XKCD(ComicStrip):
