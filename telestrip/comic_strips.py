@@ -61,6 +61,21 @@ class PennyArcade(ComicStrip):
     TITLE = "Penny Arcade"
     INDEX_URL = "http://penny-arcade.com/feed"
 
+    def to_telegram_markdown(self, soup):
+        result = ''
+        for p in soup.findAll('p'):
+            for child in list(p.children)[0:-1]:
+                if child.name is None:
+                    result += str(child)
+                    result += '\n\n'
+                elif child.name == 'a':
+                    result = result.strip()
+                    result += ' [{0}]({1})'.format(child.text, child.attrs['href'])
+                elif child.name == 'i':
+                    result += '*{0}*'.format(str(child.text))
+
+        return result.replace('\0xa', '').strip()
+
     async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
         if not entry.title.startswith("Comic:"):
             print(f"[{self.TITLE}] Ignoring entry {entry.title}: not a comic")
@@ -71,10 +86,21 @@ class PennyArcade(ComicStrip):
         soup = BeautifulSoup(comic_page, "html.parser")
         comic_img = soup.find("div", {"id": "comicFrame"}).findChild("img")
 
+        description = None
+
+        post_link = soup.find('a', {'title': 'Read News Post'})
+        if post_link:
+            print(f"[{self.TITLE}] Fetching post page for {entry.title}...")
+            response, post_page = await fetch(post_link.attrs['href'])
+            soup = BeautifulSoup(post_page, 'html.parser')
+            copy_text = soup.find('div', {'class': 'copy'})
+            if copy_text:
+                description = self.to_telegram_markdown(copy_text)
+
         print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
         response, image = await fetch(comic_img.attrs["src"])
 
-        return Update(entry.title, entry.summary, published_on, [image])
+        return Update(entry.title, description, published_on, [image])
 
 
 class PvP(ComicStrip):
@@ -95,7 +121,7 @@ class PvP(ComicStrip):
         print(f'[{self.TITLE}] Fetching image from {comic_img.attrs["src"]}')
         response, image = await fetch(comic_img.attrs["src"])
 
-        return Update(entry.title, entry.summary, published_on, [image])
+        return Update(entry.title, None, published_on, [image])
 
 
 class SaturdayMorningBreakfastCereal(ComicStrip):
