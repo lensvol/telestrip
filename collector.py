@@ -29,6 +29,7 @@ def main(specific_strips=None, day_delta=1, print_to_console=False):
         XKCD(),
         CommitStrip(),
         SlackWyrm(),
+        Kill6BillionDemons(),
     ]
 
     if specific_strips:

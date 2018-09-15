@@ -18,7 +18,7 @@ async def fetch(url):
 @attr.s(auto_attribs=True)
 class Update(object):
     title: str
-    description: str
+    description: Union[str, None]
     timestamp: pendulum
     images: List[bytes]
 
@@ -200,6 +200,21 @@ class SlackWyrm(ComicStrip):
         return Update(entry.title, entry.summary, published_on, images)
 
 
+class Kill6BillionDemons(ComicStrip):
+    ID = 'kill-6-billion-demons'
+    TITLE = 'Kill 6 Billion Demons'
+    INDEX_URL = 'https://killsixbilliondemons.com/feed/'
+
+    async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
+        print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
+        response, comic_page = await fetch(entry.link)
+        soup = BeautifulSoup(comic_page, "html.parser")
+        img_meta = soup.find('meta', {'property': 'og:image'})
+
+        response, image = await fetch(img_meta.attrs['content'])
+        return Update(entry.title, None, published_on, [image])
+
+
 __all__ = [
     'CommitStrip',
     'PvP',
@@ -209,4 +224,5 @@ __all__ = [
     'ComicStrip',
     'Update',
     'SlackWyrm',
+    'Kill6BillionDemons',
 ]
