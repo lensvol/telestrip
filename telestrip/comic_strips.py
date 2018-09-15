@@ -205,14 +205,37 @@ class Kill6BillionDemons(ComicStrip):
     TITLE = 'Kill 6 Billion Demons'
     INDEX_URL = 'https://killsixbilliondemons.com/feed/'
 
+    def to_telegram_markdown(self, soup):
+        result = ''
+        for p in soup.findAll('p'):
+            for child in p.children:
+                if child.name is None:
+                    result += str(child)
+                    result += '\n\n'
+                elif child.name == 'a':
+                    result = result.strip()
+                    result += ' [{0}]({1})'.format(child.text, child.attrs['href'])
+                elif child.name == 'i':
+                    result += '*{0}*'.format(str(child.text))
+
+        return result.replace('\0xa', '').strip()
+
     async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
         print(f"[{self.TITLE}] Fetching comic page for {entry.title}")
         response, comic_page = await fetch(entry.link)
         soup = BeautifulSoup(comic_page, "html.parser")
         img_meta = soup.find('meta', {'property': 'og:image'})
 
+        if not img_meta:
+            return None
+
+        description = None
+        entry_div = soup.find('div', {'class': 'entry'})
+        if entry_div:
+            description = self.to_telegram_markdown(entry_div)
+
         response, image = await fetch(img_meta.attrs['content'])
-        return Update(entry.title, None, published_on, [image])
+        return Update(entry.title, description, published_on, [image])
 
 
 __all__ = [
