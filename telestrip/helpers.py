@@ -24,8 +24,17 @@ async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List
             human_dt = update.timestamp.to_datetime_string()
             await private.send_photo(
                 photo=strip,
-                caption=f'{update.title} - {human_dt}'
+                caption=f'*{update.title}*\n({human_dt})',
+                parse_mode='Markdown',
             )
+
+        if update.description:
+            print(f'Sending description for {update.title} as separate post...')
+            await private.send_text(
+                f'*{update.title}*\n\n{update.description}',
+                parse_mode='Markdown',
+            )
+
 
 
 async def collect_strips(comic_strips: List[ComicStrip], moment: pendulum.DateTime) -> Iterator[Update]:
