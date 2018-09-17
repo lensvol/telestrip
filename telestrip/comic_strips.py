@@ -74,7 +74,11 @@ class PennyArcade(ComicStrip):
                     result = result.strip()
                     result += ' [{0}]({1})'.format(child.text, child.attrs['href'])
                 elif child.name == 'i':
-                    result += '*{0}*'.format(str(child.text))
+                    result = result.strip()
+                    result += ' _{0}_ '.format(str(child.text))
+                elif child.name == 'b':
+                    result = result.strip()
+                    result += ' *{0}* '.format(str(child.text))
 
         return result.replace('\0xa', '').strip()
 
@@ -218,7 +222,11 @@ class Kill6BillionDemons(ComicStrip):
                     result = result.strip()
                     result += ' [{0}]({1})'.format(child.text, child.attrs['href'])
                 elif child.name == 'i':
-                    result += '*{0}*'.format(str(child.text))
+                    result = result.strip()
+                    result += ' _{0}_ '.format(str(child.text))
+                elif child.name == 'b':
+                    result = result.strip()
+                    result += ' *{0}* '.format(str(child.text))
 
         return result.replace('\0xa', '').strip()
 
