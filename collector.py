@@ -30,6 +30,7 @@ def main(specific_strips=None, day_delta=1, print_to_console=False):
         CommitStrip(),
         SlackWyrm(),
         Kill6BillionDemons(),
+        DorkTower(),
     ]
 
     if specific_strips:

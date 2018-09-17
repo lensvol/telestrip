@@ -248,6 +248,30 @@ class Kill6BillionDemons(ComicStrip):
         return Update(entry.title, description, published_on, [image])
 
 
+class DorkTower(ComicStrip):
+    ID = 'dork-tower'
+    TITLE = 'Dork Tower'
+    INDEX_URL = 'http://www.dorktower.com/feed/'
+
+    async def process_entry(self, entry, published_on: DateTime) -> Union[Update, None]:
+        self.log(f"Fetching comic page for {entry.title}")
+        soup = BeautifulSoup(entry.content[0].value, "html.parser")
+        candidate_imgs = soup.findAll("img")
+        url = None
+
+        for candidate in candidate_imgs:
+            if '/DorkTower' in candidate.attrs['src']:
+                url = candidate.attrs['src']
+                break
+
+        if not url:
+            return None
+
+        self.log(f'Fetching image from {url}')
+        response, image = await fetch(url)
+        return Update(entry.title, '', published_on, [image])
+
+
 __all__ = [
     'CommitStrip',
     'PvP',
@@ -258,4 +282,5 @@ __all__ = [
     'Update',
     'SlackWyrm',
     'Kill6BillionDemons',
+    'DorkTower',
 ]
