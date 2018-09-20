@@ -1,20 +1,26 @@
 # -*- config: utf-8 -*-
 import asyncio
 import base64
-from colorama import Fore, Back, Style, init as init_colorama
 import itertools
 from typing import Iterator, List
 
 import pendulum
+from aiohttp import ClientSession
 from aiotg import Bot
+from colorama import Fore, Style, init as init_colorama
 
-from telestrip.comic_strips import ComicStrip, Update
 
 RSS_DATE_FORMAT = "ddd, D MMM YYYY HH:mm:ss Z"
 MAGIC_IMAGE_LINE = '\033]1337;File=inline=1;width=auto;height=auto;preserveAspectRatio=1:{encoded_image}\a'
 
 
-async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List[Update]) -> None:
+async def fetch(url):
+    async with ClientSession() as session:
+        async with session.get(url) as response:
+            return response, await response.read()
+
+
+async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List['Update']) -> None:
     bot = Bot(api_token)
     private = bot.private(sender_id)
 
@@ -36,7 +42,7 @@ async def send_updates_to_telegram(sender_id: str, api_token: str, updates: List
             )
 
 
-async def collect_strips(comic_strips: List[ComicStrip], moment: pendulum.DateTime) -> Iterator[Update]:
+async def collect_strips(comic_strips: List['ComicStrip'], moment: pendulum.DateTime) -> Iterator['Update']:
     tasks = [
         asyncio.ensure_future(comic_strip.get_updates(moment))
         for comic_strip in comic_strips
@@ -47,7 +53,7 @@ async def collect_strips(comic_strips: List[ComicStrip], moment: pendulum.DateTi
     return itertools.chain.from_iterable(updates)
 
 
-def print_updates_to_console(updates: List[Update]) -> None:
+def print_updates_to_console(updates: List['Update']) -> None:
     init_colorama()
     for update in updates:
         print(f'{Style.BRIGHT}[{update.title}]{Style.RESET_ALL}\n')

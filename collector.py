@@ -1,11 +1,13 @@
 # -*- config: utf-8 -*-
 import asyncio
 import argparse
+import inspect
 import os
 
 import pendulum
 
-from telestrip.comic_strips import *
+from telestrip import comic_strips
+from telestrip.base import ComicStrip
 from telestrip.helpers import collect_strips, send_updates_to_telegram, print_updates_to_console
 
 RSS_DATE_FORMAT = "ddd, D MMM YYYY HH:mm:ss Z"
@@ -23,14 +25,9 @@ def main(specific_strips=None, day_delta=1, print_to_console=False):
         exit(-1)
 
     requested_strips = [
-        PennyArcade(),
-        PvP(),
-        SaturdayMorningBreakfastCereal(),
-        XKCD(),
-        CommitStrip(),
-        SlackWyrm(),
-        Kill6BillionDemons(),
-        DorkTower(),
+        cls()
+        for name, cls in inspect.getmembers(comic_strips, inspect.isclass)
+        if issubclass(cls, ComicStrip)
     ]
 
     if specific_strips:
