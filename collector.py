@@ -1,9 +1,8 @@
 # -*- config: utf-8 -*-
-import asyncio
 import argparse
+import asyncio
 import inspect
 import os
-from typing import Dict
 
 import pendulum
 
@@ -37,7 +36,7 @@ def main(specific_strips=None, day_delta=1, print_to_console=False):
     requested_strips = [
         cls()
         for name, cls in inspect.getmembers(comic_strips, inspect.isclass)
-        if issubclass(cls, ComicStrip)
+        if issubclass(cls, ComicStrip) and cls.ID is not None
     ]
 
     if specific_strips:
@@ -48,6 +47,7 @@ def main(specific_strips=None, day_delta=1, print_to_console=False):
     last_seen_timestamps = {
         strip.ID: now.subtract(days=day_delta) for strip in requested_strips
     }
+
     timestamps_from_database = database.retrieve_strip_timestamps()
     last_seen_timestamps.update(timestamps_from_database)
 
