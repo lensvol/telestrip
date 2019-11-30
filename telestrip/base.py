@@ -11,6 +11,7 @@ from telestrip.helpers import fetch
 
 @attr.s(auto_attribs=True)
 class Update(object):
+    strip_id: str
     title: str
     description: Union[str, None]
     timestamp: pendulum
@@ -30,7 +31,7 @@ class ComicStrip(object):
         rss = feedparser.parse(page)
 
         for entry in rss.entries:
-            if 'published_parsed' in entry:
+            if "published_parsed" in entry:
                 parsed_timestamp = entry.published_parsed
             else:
                 parsed_timestamp = entry.updated_parsed
@@ -49,4 +50,4 @@ class ComicStrip(object):
         raise NotImplemented
 
     def log(self, message: str):
-        print(f'[{self.TITLE}] {message}')
+        print(f"[{self.TITLE}] {message}")
