@@ -1,14 +1,14 @@
 # -*- config: utf-8 -*-
 import asyncio
 import base64
-import itertools
+import operator
+from functools import reduce
 from typing import Iterator, List, Dict
 
 import pendulum
 from aiohttp import ClientSession
 from aiotg import Bot
 from colorama import Fore, Style, init as init_colorama
-
 
 RSS_DATE_FORMAT = "ddd, D MMM YYYY HH:mm:ss Z"
 MAGIC_IMAGE_LINE = "\033]1337;File=inline=1;width=auto;height=auto;preserveAspectRatio=1:{encoded_image}\a"
@@ -42,20 +42,21 @@ async def send_updates_to_telegram(
                 f"*{update.title}*\n\n{update.description}", parse_mode="Markdown"
             )
 
+    await bot.session.close()
+
 
 async def collect_strips(
     comic_strips: List["ComicStrip"], timestamps: Dict[str, int]
 ) -> Iterator["Update"]:
     tasks = [
         asyncio.ensure_future(
-            strip.get_updates(timestamps.get(strip.id, pendulum.from_timestamp(1)))
+            strip.get_updates(timestamps.get(strip.ID, pendulum.from_timestamp(1)))
         )
         for strip in comic_strips
     ]
 
     updates = await asyncio.gather(*tasks)
-
-    return itertools.chain.from_iterable(updates)
+    return reduce(operator.concat, updates)
 
 
 def print_updates_to_console(updates: List["Update"]) -> None:

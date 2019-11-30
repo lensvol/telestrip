@@ -1,15 +1,10 @@
-from time import mktime
-from typing import List, Union
+from typing import Union
 
-import attr
-import feedparser
-import pendulum
-from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from pendulum import DateTime
 
-from telestrip.helpers import fetch
 from telestrip.base import ComicStrip, Update
+from telestrip.helpers import fetch
 
 
 class PennyArcade(ComicStrip):
